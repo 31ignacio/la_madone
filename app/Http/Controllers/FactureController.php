@@ -146,7 +146,7 @@ class FactureController extends Controller
     }
 
     
-   public function destroy(Facture $facture)
+    public function destroy(Facture $facture)
     {
         DB::beginTransaction();
 
