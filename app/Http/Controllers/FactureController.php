@@ -12,20 +12,35 @@ use Illuminate\Support\Facades\DB;
 class FactureController extends Controller
 {
     public function index()
-    {
-        $factures = Facture::with('user')
-            ->when(request('search'), fn($q,$v) =>
-                $q->where('numero', 'like', "%$v%")
-                  ->orWhere('client_nom', 'like', "%$v%")
-            )
-            ->when(request('statut'),     fn($q,$v) => $q->where('statut', $v))
-            ->when(request('date_debut'), fn($q,$v) => $q->whereDate('created_at', '>=', $v))
-            ->when(request('date_fin'),   fn($q,$v) => $q->whereDate('created_at', '<=', $v))
-            ->latest()
-            ->paginate(20);
+{
+    $user = auth()->user();
+    
+    $factures = Facture::with('user')
+        ->when(!$user->isAdmin() && !$user->isSuperviseur(), function ($query) use ($user) {
+            // Caissier et Caissier Haut : voir uniquement leurs propres factures
+            return $query->where('user_id', $user->id);
+        })
+        // Admin et Superviseur : voir toutes les factures (pas de filtre)
+        ->when(request('search'), function ($query, $search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('numero', 'like', "%{$search}%")
+                  ->orWhere('client_nom', 'like', "%{$search}%");
+            });
+        })
+        ->when(request('statut'), function ($query, $statut) {
+            return $query->where('statut', $statut);
+        })
+        ->when(request('date_debut'), function ($query, $date) {
+            return $query->whereDate('created_at', '>=', $date);
+        })
+        ->when(request('date_fin'), function ($query, $date) {
+            return $query->whereDate('created_at', '<=', $date);
+        })
+        ->latest()
+        ->paginate(20);
 
-        return view('factures.index', compact('factures'));
-    }
+    return view('factures.index', compact('factures'));
+}
 
     public function show(Facture $facture)
     {
