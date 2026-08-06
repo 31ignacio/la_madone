@@ -122,6 +122,7 @@
 }
 .ua-admin { background:linear-gradient(135deg,#7c3aed,#a855f7); }
 .ua-caiss { background:linear-gradient(135deg,#2563eb,#3b82f6); }
+.ua-caiss-haut { background:linear-gradient(135deg,#d97706,#f59e0b); }
 .ua-sup   { background:linear-gradient(135deg,#059669,#10b981); }
 .ua-other { background:linear-gradient(135deg,#475569,#64748b); }
 .user-name  { font-size:13px; font-weight:700; color:#0f172a; }
@@ -142,6 +143,7 @@
 .rb-dot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
 .rb-admin { background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; }
 .rb-caiss { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+.rb-caiss-haut { background:#fefce8; color:#d97706; border:1px solid #fde68a; }
 .rb-sup   { background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; }
 .rb-other { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
 
@@ -237,6 +239,7 @@
         $actifs   = $allUsers->where('actif', true)->count();
         $inactifs = $allUsers->where('actif', false)->count();
         $admins   = $allUsers->where('role', 'admin')->count();
+        $caissiersHaut = $allUsers->where('role', 'caissierHaut')->count();
     @endphp
     <div class="usr-kpi-row">
         <div class="usr-kpi">
@@ -266,6 +269,12 @@
                 Liste des utilisateurs
                 <span class="usr-count-badge">{{ $users->total() }}</span>
             </h6>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px">
+                <span class="role-badge rb-admin"><span class="rb-dot"></span> Admin</span>
+                <span class="role-badge rb-caiss"><span class="rb-dot"></span> Caissier</span>
+                <span class="role-badge rb-caiss-haut"><span class="rb-dot"></span> Caissier Haut</span>
+                <span class="role-badge rb-sup"><span class="rb-dot"></span> Superviseur</span>
+            </div>
         </div>
 
         <div style="overflow-x:auto">
@@ -284,8 +293,27 @@
                     @forelse($users as $user)
                     @php
                         $initials    = collect(explode(' ', $user->nom_complet))->map(fn($w)=>strtoupper(substr($w,0,1)))->take(2)->implode('');
-                        $avatarClass = match($user->role) { 'admin'=>'ua-admin','caissier'=>'ua-caiss','superviseur'=>'ua-sup',default=>'ua-other' };
-                        $roleClass   = match($user->role) { 'admin'=>'rb-admin','caissier'=>'rb-caiss','superviseur'=>'rb-sup',default=>'rb-other' };
+                        $avatarClass = match($user->role) { 
+                            'admin'       => 'ua-admin',
+                            'caissier'    => 'ua-caiss',
+                            'caissierHaut'=> 'ua-caiss-haut',
+                            'superviseur' => 'ua-sup',
+                            default       => 'ua-other' 
+                        };
+                        $roleClass   = match($user->role) { 
+                            'admin'       => 'rb-admin',
+                            'caissier'    => 'rb-caiss',
+                            'caissierHaut'=> 'rb-caiss-haut',
+                            'superviseur' => 'rb-sup',
+                            default       => 'rb-other' 
+                        };
+                        $roleLabel   = match($user->role) {
+                            'admin'       => 'Administrateur',
+                            'caissier'    => 'Caissier',
+                            'caissierHaut'=> 'Caissier Haut',
+                            'superviseur' => 'Superviseur',
+                            default       => 'Inconnu',
+                        };
                         $isMe        = $user->id === auth()->id();
                     @endphp
                     <tr class="{{ !$user->actif ? 'inactive' : '' }}">
@@ -324,7 +352,7 @@
                         <td>
                             <span class="role-badge {{ $roleClass }}">
                                 <span class="rb-dot"></span>
-                                {{ $user->role_label }}
+                                {{ $roleLabel }}
                             </span>
                         </td>
 

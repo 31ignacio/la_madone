@@ -27,9 +27,11 @@ class UserController extends Controller
             'prenom'    => 'required|string',
             'email'     => 'required|email|unique:users,email',
             'telephone' => 'nullable|string',
-            'role'      => 'required|in:admin,caissier,superviseur',
+            'role'      => 'required|in:admin,caissier,superviseur,caissierHaut',
             'password'  => 'required|min:6|confirmed',
         ]);
+
+        
 
         User::create([
             'nom'       => $request->nom,
@@ -56,7 +58,7 @@ class UserController extends Controller
             'nom'       => 'required|string|max:100',
             'email'     => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'telephone' => 'nullable|string|max:20',
-            'role'      => 'required|in:admin,caissier,superviseur',
+            'role'      => 'required|in:admin,caissier,superviseur,caissierHaut',
             'password'  => 'nullable|string|min:6|confirmed',
         ], [
             'prenom.required'   => 'Le prénom est obligatoire.',

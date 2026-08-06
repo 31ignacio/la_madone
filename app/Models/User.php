@@ -65,6 +65,11 @@ class User extends Authenticatable
         return $this->role === 'caissier';
     }
 
+    public function isCaissierHaut(): bool
+    {
+        return $this->role === 'caissierHaut';
+    }
+
     public function isSuperviseur(): bool
     {
         return $this->role === 'superviseur';
@@ -80,6 +85,7 @@ class User extends Authenticatable
         return match($this->role) {
             'admin'       => 'Administrateur',
             'caissier'    => 'Caissier',
+            'caissierHaut'=> 'Caissier Haut',
             'superviseur' => 'Superviseur',
             default       => 'Inconnu',
         };
@@ -90,8 +96,80 @@ class User extends Authenticatable
         return match($this->role) {
             'admin'       => 'badge-danger',
             'caissier'    => 'badge-success',
-            'superviseur' => 'badge-warning',
+            'caissierHaut'=> 'badge-warning',
+            'superviseur' => 'badge-info',
             default       => 'badge-secondary',
         };
+    }
+
+    public function getAvatarClassAttribute(): string
+    {
+        return match($this->role) {
+            'admin'       => 'ua-admin',
+            'caissier'    => 'ua-caiss',
+            'caissierHaut'=> 'ua-caiss-haut',
+            'superviseur' => 'ua-sup',
+            default       => 'ua-other',
+        };
+    }
+
+    public function getRoleClassAttribute(): string
+    {
+        return match($this->role) {
+            'admin'       => 'rp-admin',
+            'caissier'    => 'rp-caiss',
+            'caissierHaut'=> 'rp-caiss-haut',
+            'superviseur' => 'rp-sup',
+            default       => 'rp-other',
+        };
+    }
+
+    public function getInitialsAttribute(): string
+    {
+        $parts = explode(' ', $this->nom_complet);
+        $initials = '';
+        foreach ($parts as $part) {
+            if (!empty($part)) {
+                $initials .= strtoupper(substr($part, 0, 1));
+            }
+        }
+        return substr($initials, 0, 2);
+    }
+
+    // ==================== SCOPES ====================
+
+    public function scopeActifs($query)
+    {
+        return $query->where('actif', true);
+    }
+
+    public function scopeInactifs($query)
+    {
+        return $query->where('actif', false);
+    }
+
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', 'admin');
+    }
+
+    public function scopeCaissiers($query)
+    {
+        return $query->where('role', 'caissier');
+    }
+
+    public function scopeCaissiersHaut($query)
+    {
+        return $query->where('role', 'caissierHaut');
+    }
+
+    public function scopeSuperviseurs($query)
+    {
+        return $query->where('role', 'superviseur');
+    }
+
+    public function scopeByRole($query, $role)
+    {
+        return $query->where('role', $role);
     }
 }

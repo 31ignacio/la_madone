@@ -248,7 +248,7 @@
    <div class="greeting-bar" style="background: linear-gradient(135deg, rgba(15,23,42,0.82) 0%, rgba(30,58,95,0.80) 60%, rgba(15,52,96,0.82) 100%), url('{{ asset('image/caisse1.jpg') }}') center/cover no-repeat;">
         <div style="position:relative; z-index:1">
             <h4 class="greeting-title">
-                Bonjour, {{ auth()->user()->prenom }} {{ auth()->user()->nom }} 👋
+                Bonjour, {{ auth()->user()->prenom }} {{ auth()->user()->nom }} 
             </h4>
             <p class="greeting-sub">
                 Voici un résumé de votre activité du jour

@@ -8,6 +8,8 @@ use App\Models\Facture;
 use App\Models\FactureLigne;
 use App\Models\Reglement;
 use App\Models\Client;
+use App\Models\Categorie; // ← AJOUTER CETTE LIGNE
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\EmecefService;
@@ -25,45 +27,105 @@ class CaisseController extends Controller
      * Recherche de produits pour la caisse (AJAX).
      * Retourne aussi les paliers de prix pour affichage JS.
      */
+
     public function recherche(Request $request)
     {
-        $search = trim((string) $request->get('q', ''));
+        try {
+            $search = trim((string) $request->get('q', ''));
+            $role = $request->get('role', '');
+            $user = auth()->user();
 
-        $produits = Produit::where('actif', true)
-            ->where('stock_actuel', '>', 0)
-            ->where(function ($query) use ($search) {
-                $query->where('libelle', 'like', "%{$search}%")
-                      ->orWhere('code_barre', $search)
-                      ->orWhere('reference', 'like', "%{$search}%");
-            })
-            ->orderByRaw('CASE WHEN code_barre = ? THEN 0 ELSE 1 END', [$search])
-            ->select('id', 'libelle',
-                'prix_detail', 'seuil_detail',
-                'prix_moyen',  'seuil_moyen',
-                'prix_gros',   'seuil_gros',
-                'stock_actuel', 'unite', 'reference', 'code_barre')
-            ->limit(10)
-            ->get();
+            // Utiliser le rôle de l'utilisateur si non passé en paramètre
+            if (empty($role)) {
+                $role = $user->role;
+            }
 
-        // Ajouter les paliers calculés à chaque produit
-        $produits = $produits->map(function ($p) {
-            return [
-                'id'           => $p->id,
-                'libelle'      => $p->libelle,
-                'reference'    => $p->reference,
-                'code_barre'   => $p->code_barre,
-                'stock_actuel' => (float) $p->stock_actuel,
-                'unite'        => $p->unite,
-                'prix_detail'  => (float) $p->prix_detail,
-                'seuil_detail' => (int) ($p->seuil_detail ?? 1),
-                'prix_moyen'   => $p->prix_moyen  ? (float) $p->prix_moyen  : null,
-                'seuil_moyen'  => $p->seuil_moyen ? (int)   $p->seuil_moyen : null,
-                'prix_gros'    => $p->prix_gros   ? (float) $p->prix_gros   : null,
-                'paliers'      => $p->paliers,
-            ];
-        });
+            // Récupérer la catégorie "CATEGORIE DU HAUT"
+            $categorieHaut = Categorie::where('nom', 'CATEGORIE DU HAUT')->first();
 
-        return response()->json($produits);
+            // Démarrer la requête
+            $produits = Produit::where('actif', true)
+                ->where('stock_actuel', '>', 0);
+
+            // ── FILTRAGE SELON LE RÔLE ──
+            if ($role === 'caissier') {
+                // Caissier : EXCLURE les produits de la catégorie "CATEGORIE DU HAUT"
+                if ($categorieHaut) {
+                    $produits->where(function($query) use ($categorieHaut) {
+                        $query->where('categorie_id', '!=', $categorieHaut->id)
+                            ->orWhereNull('categorie_id');
+                    });
+                }
+                // Si la catégorie n'existe pas, on retourne tous les produits
+                
+            } elseif ($role === 'caissierHaut') {
+                // Caissier Haut : UNIQUEMENT les produits de la catégorie "CATEGORIE DU HAUT"
+                if ($categorieHaut) {
+                    $produits->where('categorie_id', '=', $categorieHaut->id);
+                } else {
+                    // Si la catégorie n'existe pas, retourner vide
+                    return response()->json([]);
+                }
+            }
+            // Admin et Superviseur : pas de filtre (on garde tous les produits)
+
+            // ── RECHERCHE ──
+            if (!empty($search)) {
+                $produits->where(function ($query) use ($search) {
+                    $query->where('libelle', 'like', "%{$search}%")
+                        ->orWhere('code_barre', 'like', "%{$search}%")
+                        ->orWhere('reference', 'like', "%{$search}%");
+                });
+            }
+
+            $produits = $produits
+                ->orderByRaw('CASE WHEN code_barre = ? THEN 0 ELSE 1 END', [$search])
+                ->select(
+                    'id',
+                    'libelle',
+                    'prix_detail',
+                    'seuil_detail',
+                    'prix_moyen',
+                    'seuil_moyen',
+                    'prix_gros',
+                    'seuil_gros',
+                    'stock_actuel',
+                    'unite',
+                    'reference',
+                    'code_barre',
+                    'categorie_id'
+                )
+                ->limit(10)
+                ->get();
+
+            // Ajouter les paliers calculés à chaque produit
+            $produits = $produits->map(function ($p) {
+                return [
+                    'id'           => $p->id,
+                    'libelle'      => $p->libelle,
+                    'reference'    => $p->reference,
+                    'code_barre'   => $p->code_barre,
+                    'stock_actuel' => (float) $p->stock_actuel,
+                    'unite'        => $p->unite,
+                    'prix_detail'  => (float) $p->prix_detail,
+                    'seuil_detail' => (int) ($p->seuil_detail ?? 1),
+                    'prix_moyen'   => $p->prix_moyen  ? (float) $p->prix_moyen  : null,
+                    'seuil_moyen'  => $p->seuil_moyen ? (int)   $p->seuil_moyen : null,
+                    'prix_gros'    => $p->prix_gros   ? (float) $p->prix_gros   : null,
+                    'paliers'      => $p->paliers,
+                    'categorie_id' => $p->categorie_id,
+                ];
+            });
+
+            return response()->json($produits);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur recherche caisse: ' . $e->getMessage());
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
 
     /**
@@ -72,197 +134,197 @@ class CaisseController extends Controller
     */
     // public function valider(Request $request)
     // {
-    //     $request->validate([
-    //         'mode_paiement'       => 'required|in:espece,carte,mobile_money,credit',
-    //         'montant_recu'        => 'required|numeric|min:0',
-    //         'client_nom'          => 'nullable|string|max:255',
-    //         'client_telephone'    => 'nullable|string|max:20',
-    //         'client_id'           => 'nullable|exists:clients,id',
-    //         'remise'              => 'nullable|numeric|min:0',
-    //         'produits'            => 'required|array|min:1',
-    //         'produits.*.id'       => 'required|exists:produits,id',
-    //         'produits.*.quantite' => 'required|numeric|min:0.01',
-    //     ]);
+        //     $request->validate([
+        //         'mode_paiement'       => 'required|in:espece,carte,mobile_money,credit',
+        //         'montant_recu'        => 'required|numeric|min:0',
+        //         'client_nom'          => 'nullable|string|max:255',
+        //         'client_telephone'    => 'nullable|string|max:20',
+        //         'client_id'           => 'nullable|exists:clients,id',
+        //         'remise'              => 'nullable|numeric|min:0',
+        //         'produits'            => 'required|array|min:1',
+        //         'produits.*.id'       => 'required|exists:produits,id',
+        //         'produits.*.quantite' => 'required|numeric|min:0.01',
+        //     ]);
 
-    //     // ══ VÉRIFICATION STOCK — AVANT la transaction ══
-    //     $erreurStock = [];
+        //     // ══ VÉRIFICATION STOCK — AVANT la transaction ══
+        //     $erreurStock = [];
 
-    //     foreach ($request->produits as $item) {
-    //         $produit = Produit::findOrFail($item['id']);
-    //         $qte     = (float) $item['quantite'];
+        //     foreach ($request->produits as $item) {
+        //         $produit = Produit::findOrFail($item['id']);
+        //         $qte     = (float) $item['quantite'];
 
-    //         if ($produit->stock_actuel <= 0) {
-    //             $erreurStock[] = "\"{$produit->libelle}\" est en rupture de stock.";
-    //         } elseif ($produit->stock_actuel < $qte) {
-    //             $erreurStock[] = sprintf(
-    //                 '"%s" : stock insuffisant (dispo : %s %s · demandé : %s %s)',
-    //                 $produit->libelle,
-    //                 number_format($produit->stock_actuel, 2, ',', ' '),
-    //                 $produit->unite,
-    //                 number_format($qte, 2, ',', ' '),
-    //                 $produit->unite
-    //             );
-    //         }
-    //     }
+        //         if ($produit->stock_actuel <= 0) {
+        //             $erreurStock[] = "\"{$produit->libelle}\" est en rupture de stock.";
+        //         } elseif ($produit->stock_actuel < $qte) {
+        //             $erreurStock[] = sprintf(
+        //                 '"%s" : stock insuffisant (dispo : %s %s · demandé : %s %s)',
+        //                 $produit->libelle,
+        //                 number_format($produit->stock_actuel, 2, ',', ' '),
+        //                 $produit->unite,
+        //                 number_format($qte, 2, ',', ' '),
+        //                 $produit->unite
+        //             );
+        //         }
+        //     }
 
-    //     if (!empty($erreurStock)) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Stock insuffisant pour ' . count($erreurStock) . ' produit(s).',
-    //             'erreurs' => $erreurStock,
-    //         ], 422);
-    //     }
-    //     // ══ FIN VÉRIFICATION STOCK ══
+        //     if (!empty($erreurStock)) {
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Stock insuffisant pour ' . count($erreurStock) . ' produit(s).',
+        //             'erreurs' => $erreurStock,
+        //         ], 422);
+        //     }
+        //     // ══ FIN VÉRIFICATION STOCK ══
 
-    //     DB::beginTransaction();
+        //     DB::beginTransaction();
 
 
-    //     try {
-    //         $sousTotal = 0;
-    //         $lignes    = [];
+        //     try {
+        //         $sousTotal = 0;
+        //         $lignes    = [];
 
-    //         foreach ($request->produits as $item) {
-    //             $produit = Produit::findOrFail($item['id']);
-    //             $qte     = (float) $item['quantite'];
+        //         foreach ($request->produits as $item) {
+        //             $produit = Produit::findOrFail($item['id']);
+        //             $qte     = (float) $item['quantite'];
 
-    //             $prixUnitaire = $produit->getPrixParQuantite($qte);
-    //             $sousLigne    = $prixUnitaire * $qte;
-    //             $sousTotal   += $sousLigne;
+        //             $prixUnitaire = $produit->getPrixParQuantite($qte);
+        //             $sousLigne    = $prixUnitaire * $qte;
+        //             $sousTotal   += $sousLigne;
 
-    //             $lignes[] = [
-    //                 'produit'       => $produit,
-    //                 'quantite'      => $qte,
-    //                 'prix_unitaire' => $prixUnitaire,
-    //                 'sous_total'    => $sousLigne,
-    //             ];
-    //         }
+        //             $lignes[] = [
+        //                 'produit'       => $produit,
+        //                 'quantite'      => $qte,
+        //                 'prix_unitaire' => $prixUnitaire,
+        //                 'sous_total'    => $sousLigne,
+        //             ];
+        //         }
 
-    //         $remise   = (float) ($request->remise ?? 0);
-    //         $total    = $sousTotal - $remise;
-    //         $isCredit = $request->mode_paiement === 'credit';
-    //         $monnaie  = $isCredit ? 0 : max($request->montant_recu - $total, 0);
-    //         $clientId = $request->input('client_id');
+        //         $remise   = (float) ($request->remise ?? 0);
+        //         $total    = $sousTotal - $remise;
+        //         $isCredit = $request->mode_paiement === 'credit';
+        //         $monnaie  = $isCredit ? 0 : max($request->montant_recu - $total, 0);
+        //         $clientId = $request->input('client_id');
 
-    //         // ── Créer la facture ──
-    //         $facture = Facture::create([
-    //             'user_id'          => auth()->id(),
-    //             'numero'           => Facture::genererNumero(),
-    //             'client_id'        => $clientId,
-    //             'client_telephone' => $request->client_telephone,
-    //             'statut'           => $isCredit ? 'en_cours' : 'payee',
-    //             'mode_paiement'    => $request->mode_paiement,
-    //             'sous_total'       => $sousTotal,
-    //             'remise'           => $remise,
-    //             'total'            => $total,
-    //             'montant_recu'     => $isCredit ? 0 : $request->montant_recu,
-    //             'monnaie'          => $monnaie,
-    //             'reste_a_payer'    => $isCredit ? $total : 0,
-    //         ]);
+        //         // ── Créer la facture ──
+        //         $facture = Facture::create([
+        //             'user_id'          => auth()->id(),
+        //             'numero'           => Facture::genererNumero(),
+        //             'client_id'        => $clientId,
+        //             'client_telephone' => $request->client_telephone,
+        //             'statut'           => $isCredit ? 'en_cours' : 'payee',
+        //             'mode_paiement'    => $request->mode_paiement,
+        //             'sous_total'       => $sousTotal,
+        //             'remise'           => $remise,
+        //             'total'            => $total,
+        //             'montant_recu'     => $isCredit ? 0 : $request->montant_recu,
+        //             'monnaie'          => $monnaie,
+        //             'reste_a_payer'    => $isCredit ? $total : 0,
+        //         ]);
 
-    //         $factureId = $facture->id; // ← garder l'id avant commit
+        //         $factureId = $facture->id; // ← garder l'id avant commit
 
-    //         // ── Créer les lignes + déduire le stock ──
-    //         foreach ($lignes as $ligne) {
-    //             FactureLigne::create([
-    //                 'facture_id'    => $facture->id,
-    //                 'produit_id'    => $ligne['produit']->id,
-    //                 'libelle'       => $ligne['produit']->libelle,
-    //                 'quantite'      => $ligne['quantite'],
-    //                 'prix_unitaire' => $ligne['prix_unitaire'],
-    //                 'sous_total'    => $ligne['sous_total'],
-    //             ]);
+        //         // ── Créer les lignes + déduire le stock ──
+        //         foreach ($lignes as $ligne) {
+        //             FactureLigne::create([
+        //                 'facture_id'    => $facture->id,
+        //                 'produit_id'    => $ligne['produit']->id,
+        //                 'libelle'       => $ligne['produit']->libelle,
+        //                 'quantite'      => $ligne['quantite'],
+        //                 'prix_unitaire' => $ligne['prix_unitaire'],
+        //                 'sous_total'    => $ligne['sous_total'],
+        //             ]);
 
-    //             $ligne['produit']->sortieStock(
-    //                 $ligne['quantite'],
-    //                 $ligne['prix_unitaire'],
-    //                 auth()->id(),
-    //                 'Vente facture ' . $facture->numero,
-    //                 $facture->id
-    //             );
-    //         }
+        //             $ligne['produit']->sortieStock(
+        //                 $ligne['quantite'],
+        //                 $ligne['prix_unitaire'],
+        //                 auth()->id(),
+        //                 'Vente facture ' . $facture->numero,
+        //                 $facture->id
+        //             );
+        //         }
 
-    //         // ── Règlement ──
-    //         if (!$isCredit) {
-    //             Reglement::create([
-    //                 'facture_id'    => $facture->id,
-    //                 'user_id'       => auth()->id(),
-    //                 'montant'       => min($request->montant_recu, $total),
-    //                 'mode_paiement' => $request->mode_paiement,
-    //                 'notes'         => 'Paiement caisse',
-    //             ]);
-    //         }
+        //         // ── Règlement ──
+        //         if (!$isCredit) {
+        //             Reglement::create([
+        //                 'facture_id'    => $facture->id,
+        //                 'user_id'       => auth()->id(),
+        //                 'montant'       => min($request->montant_recu, $total),
+        //                 'mode_paiement' => $request->mode_paiement,
+        //                 'notes'         => 'Paiement caisse',
+        //             ]);
+        //         }
 
-    //         DB::commit();
+        //         DB::commit();
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Erreur : ' . $e->getMessage(),
-    //         ], 500);
-    //     }
+        //     } catch (\Exception $e) {
+        //         DB::rollBack();
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Erreur : ' . $e->getMessage(),
+        //         ], 500);
+        //     }
 
-    //     // ════════════════════════════════════════════════════
-    //     // Normalisation e-MECeF — HORS transaction DB
-    //     // On recharge depuis la BD pour avoir toutes les relations
-    //     // ════════════════════════════════════════════════════
-    //     $facture = Facture::with(['lignes.produit', 'client', 'user'])
-    //                     ->findOrFail($factureId);
+        //     // ════════════════════════════════════════════════════
+        //     // Normalisation e-MECeF — HORS transaction DB
+        //     // On recharge depuis la BD pour avoir toutes les relations
+        //     // ════════════════════════════════════════════════════
+        //     $facture = Facture::with(['lignes.produit', 'client', 'user'])
+        //                     ->findOrFail($factureId);
 
-    //     $normalisee   = false;
-    //     $emecef       = null;
-    //     $emecefErreur = null;
+        //     $normalisee   = false;
+        //     $emecef       = null;
+        //     $emecefErreur = null;
 
-    //     try {
-    //         $service = new EmecefService();
-    //         $result  = $service->normaliser($facture);
+        //     try {
+        //         $service = new EmecefService();
+        //         $result  = $service->normaliser($facture);
 
-    //         if ($result['success']) {
+        //         if ($result['success']) {
 
-    //             // UPDATE direct avec query builder — contourne tout cache Eloquent
-    //             DB::table('factures')
-    //             ->where('id', $factureId)
-    //             ->update([
-    //                 'emecef_uid'      => $result['uid'],
-    //                 'emecef_code'     => $result['codeMECeFDGI'],
-    //                 'emecef_qr'       => $result['qrCode'],
-    //                 'emecef_datetime' => $result['dateTime'],
-    //                 'emecef_counters' => $result['counters'],
-    //                 'emecef_nim'      => $result['nim'],
-    //                 'normalisee'      => true,
-    //                 'normalisee_at'   => now(),
-    //             ]);
+        //             // UPDATE direct avec query builder — contourne tout cache Eloquent
+        //             DB::table('factures')
+        //             ->where('id', $factureId)
+        //             ->update([
+        //                 'emecef_uid'      => $result['uid'],
+        //                 'emecef_code'     => $result['codeMECeFDGI'],
+        //                 'emecef_qr'       => $result['qrCode'],
+        //                 'emecef_datetime' => $result['dateTime'],
+        //                 'emecef_counters' => $result['counters'],
+        //                 'emecef_nim'      => $result['nim'],
+        //                 'normalisee'      => true,
+        //                 'normalisee_at'   => now(),
+        //             ]);
 
-    //             $normalisee = true;
-    //             $emecef     = $result;
+        //             $normalisee = true;
+        //             $emecef     = $result;
 
-    //             // Log::info('eMECeF ✓ facture ' . $facture->numero . ' — code: ' . $result['codeMECeFDGI']);
+        //             // Log::info('eMECeF ✓ facture ' . $facture->numero . ' — code: ' . $result['codeMECeFDGI']);
 
-    //         } else {
-    //             $emecefErreur = $result['errorDesc'] ?? 'Erreur inconnue e-MECeF';
-    //             // Log::warning('eMECeF ✗ facture ' . $facture->numero . ' : ' . $emecefErreur);
-    //         }
+        //         } else {
+        //             $emecefErreur = $result['errorDesc'] ?? 'Erreur inconnue e-MECeF';
+        //             // Log::warning('eMECeF ✗ facture ' . $facture->numero . ' : ' . $emecefErreur);
+        //         }
 
-    //     } catch (\Exception $e) {
-    //         $emecefErreur = $e->getMessage();
-    //         // Log::error('eMECeF exception facture ' . $facture->numero . ' : ' . $e->getMessage());
-    //     }
+        //     } catch (\Exception $e) {
+        //         $emecefErreur = $e->getMessage();
+        //         // Log::error('eMECeF exception facture ' . $facture->numero . ' : ' . $e->getMessage());
+        //     }
 
-    //     return response()->json([
-    //         'success'       => true,
-    //         'facture_id'    => $factureId,
-    //         'numero'        => $facture->numero,
-    //         'total'         => $total,
-    //         'monnaie'       => $monnaie,
-    //         'is_credit'     => $isCredit,
-    //         'normalisee'    => $normalisee,
-    //         'emecef_code'   => $emecef['codeMECeFDGI'] ?? null,
-    //         'emecef_qr'     => $emecef['qrCode']       ?? null,
-    //         'emecef_erreur' => $emecefErreur,
-    //         'message'       => $isCredit
-    //             ? 'Vente à crédit enregistrée — ' . number_format($total, 0, ',', ' ') . ' FCFA à encaisser.'
-    //             : 'Vente enregistrée.' . ($normalisee ? ' ✓ Facture normalisée.' : ''),
-    //     ]);
+        //     return response()->json([
+        //         'success'       => true,
+        //         'facture_id'    => $factureId,
+        //         'numero'        => $facture->numero,
+        //         'total'         => $total,
+        //         'monnaie'       => $monnaie,
+        //         'is_credit'     => $isCredit,
+        //         'normalisee'    => $normalisee,
+        //         'emecef_code'   => $emecef['codeMECeFDGI'] ?? null,
+        //         'emecef_qr'     => $emecef['qrCode']       ?? null,
+        //         'emecef_erreur' => $emecefErreur,
+        //         'message'       => $isCredit
+        //             ? 'Vente à crédit enregistrée — ' . number_format($total, 0, ',', ' ') . ' FCFA à encaisser.'
+        //             : 'Vente enregistrée.' . ($normalisee ? ' ✓ Facture normalisée.' : ''),
+        //     ]);
     // }
 
     public function valider(Request $request)

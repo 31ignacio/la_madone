@@ -189,7 +189,7 @@ class Produit extends Model
         ?int $fournisseurId = null,
         ?string $motif = null,
         ?string $referenceDoc = null
-    ): MouvementStock {
+        ): MouvementStock {
         $stockAvant = (float) $this->stock_actuel;
         $this->stock_actuel = $stockAvant + $quantite;
         $this->save();
@@ -211,33 +211,33 @@ class Produit extends Model
         return $mouvement;
     }
 
-  public function sortieStock(
-    float $quantite,
-    float $prixUnitaire,
-    int $userId,
-    ?string $motif = null,
-    ?int $factureId = null,
-    string $type = 'sortie'
-): MouvementStock {
-    $stockAvant = (float) $this->stock_actuel;
-    $this->stock_actuel = max($stockAvant - $quantite, 0);
-    $this->save();
+    public function sortieStock(
+            float $quantite,
+            float $prixUnitaire,
+            int $userId,
+            ?string $motif = null,
+            ?int $factureId = null,
+            string $type = 'sortie'
+        ): MouvementStock {
+            $stockAvant = (float) $this->stock_actuel;
+            $this->stock_actuel = max($stockAvant - $quantite, 0);
+            $this->save();
 
-    $mouvement = MouvementStock::create([
-        'produit_id'    => $this->id,
-        'user_id'       => $userId,
-        'facture_id'    => $factureId,
-        'type'          => $type,
-        'quantite'      => $quantite,
-        'prix_unitaire' => $prixUnitaire,
-        'stock_avant'   => $stockAvant,
-        'stock_apres'   => $this->stock_actuel,
-        'motif'         => $motif,
-    ]);
+            $mouvement = MouvementStock::create([
+                'produit_id'    => $this->id,
+                'user_id'       => $userId,
+                'facture_id'    => $factureId,
+                'type'          => $type,
+                'quantite'      => $quantite,
+                'prix_unitaire' => $prixUnitaire,
+                'stock_avant'   => $stockAvant,
+                'stock_apres'   => $this->stock_actuel,
+                'motif'         => $motif,
+            ]);
 
-    $this->verifierAlertes();
-    return $mouvement;
-}
+            $this->verifierAlertes();
+            return $mouvement;
+    }
     public function verifierAlertes(): void
     {
         if ($this->isRupture()) {
@@ -252,4 +252,5 @@ class Produit extends Model
             );
         }
     }
+
 }

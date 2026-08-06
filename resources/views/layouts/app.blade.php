@@ -235,9 +235,9 @@
                             <p>Tableau de bord</p>
                         </a>
                     </li>
-
-                    <li class="nav-header">GESTION STOCK</li>
                     @if(auth()->user()->isAdmin())
+                    <li class="nav-header">GESTION STOCK</li>
+                  
                         <li class="nav-item has-treeview {{ request()->routeIs('produits.*','categories.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->routeIs('produits.*','categories.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-boxes"></i>
@@ -308,7 +308,7 @@
                                 </li>
                             </ul>
                         </li>
-                    @endif
+                  
                     <li class="nav-item">
                         <a href="{{ route('alertes.index') }}"
                            class="nav-link {{ request()->routeIs('alertes.*') ? 'active' : '' }}">
@@ -320,9 +320,10 @@
                             </p>
                         </a>
                     </li>
+                    @endif
 
                     <li class="nav-header">VENTES</li>
-                    @if(auth()->user()->isAdmin() || auth()->user()->isCaissier())
+                    @if(auth()->user()->isAdmin() || auth()->user()->isCaissier() || auth()->user()->isCaissierHaut())
                     <li class="nav-item">
                         <a href="{{ route('caisse.index') }}"
                            class="nav-link {{ request()->routeIs('caisse.*') ? 'active' : '' }}">

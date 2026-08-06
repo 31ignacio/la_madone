@@ -42,6 +42,7 @@
 }
 .ua-admin { background: linear-gradient(135deg, #7c3aed, #a855f7); }
 .ua-caiss { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+.ua-caiss-haut { background: linear-gradient(135deg, #d97706, #f59e0b); }
 .ua-sup   { background: linear-gradient(135deg, #059669, #10b981); }
 .ua-other { background: linear-gradient(135deg, #475569, #64748b); }
 
@@ -101,6 +102,7 @@
 .rp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .rp-admin { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
 .rp-caiss { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.rp-caiss-haut { background: #fefce8; color: #d97706; border: 1px solid #fde68a; }
 .rp-sup   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
 .rp-other { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
 
@@ -217,17 +219,31 @@
 }
 .ue-pwd-toggle:hover { color: #2563eb; }
 
-/* ── ROLE CARDS ── */
-.role-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+/* ── 4 RÔLES SUR UNE LIGNE ── */
+.role-options-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
 .role-option { display: none; }
 .role-option + label {
     display: flex; flex-direction: column; align-items: center;
-    padding: 14px 10px; border-radius: 14px;
+    padding: 14px 8px; border-radius: 14px;
     border: 2px solid #e2e8f0; background: #f8fafc;
     cursor: pointer; transition: all .2s; text-align: center;
+    height: 100%;
 }
-.role-option + label:hover { border-color: #bfdbfe; background: #eff6ff; }
-.role-option:checked + label { background: #eff6ff; border-color: #2563eb; }
+.role-option + label:hover {
+    border-color: #a7f3d0; background: #f0fdf4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+.role-option:checked + label { background: #f0fdf4; border-color: #10b981; box-shadow: 0 4px 16px rgba(16,185,129,.15); }
+.role-option[value="admin"]:checked + label { background: #f5f3ff; border-color: #7c3aed; box-shadow: 0 4px 16px rgba(124,58,237,.15); }
+.role-option[value="superviseur"]:checked + label { background: #ecfdf5; border-color: #059669; box-shadow: 0 4px 16px rgba(5,150,105,.15); }
+.role-option[value="caissier"]:checked + label { background: #eff6ff; border-color: #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,.15); }
+.role-option[value="caissierHaut"]:checked + label { background: #fefce8; border-color: #d97706; box-shadow: 0 4px 16px rgba(217,119,6,.15); }
+
 .role-ico-wrap {
     width: 40px; height: 40px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
@@ -235,9 +251,12 @@
     background: #e2e8f0; color: #64748b;
     transition: all .2s;
 }
-.role-option:checked + label .role-ico-wrap { background: #dbeafe; color: #2563eb; }
-.role-option[value="admin"]:checked   + label .role-ico-wrap { background: #ede9fe; color: #7c3aed; }
-.role-option[value="superviseur"]:checked + label .role-ico-wrap { background: #d1fae5; color: #059669; }
+.role-option:checked + label .role-ico-wrap { background: #d1fae5; color: #059669; }
+.role-option[value="admin"]:checked + label .role-ico-wrap { background: #ede9fe; color: #7c3aed; }
+.role-option[value="superviseur"]:checked + label .role-ico-wrap { background: #a7f3d0; color: #059669; }
+.role-option[value="caissier"]:checked + label .role-ico-wrap { background: #bfdbfe; color: #2563eb; }
+.role-option[value="caissierHaut"]:checked + label .role-ico-wrap { background: #fde68a; color: #d97706; }
+
 .role-lbl-main { font-size: 12px; font-weight: 800; color: #0f172a; }
 .role-lbl-sub  { font-size: 10px; color: #94a3b8; margin-top: 2px; }
 
@@ -309,11 +328,11 @@ input:checked + .slider:before { transform: translateX(22px); }
 @media(max-width: 900px) {
     .ue-layout { grid-template-columns: 1fr; }
     .form-row-2 { grid-template-columns: 1fr; }
-    .role-options { grid-template-columns: 1fr 1fr 1fr; }
+    .role-options-4 { grid-template-columns: repeat(2, 1fr); }
 }
 @media(max-width: 600px) {
     .ue-hero { flex-direction: column; align-items: flex-start; }
-    .role-options { grid-template-columns: 1fr; }
+    .role-options-4 { grid-template-columns: 1fr; }
 }
 
 /* ── ANIM ── */
@@ -332,14 +351,23 @@ input:checked + .slider:before { transform: translateX(22px); }
     $avatarClass = match($user->role) {
         'admin'       => 'ua-admin',
         'caissier'    => 'ua-caiss',
+        'caissierHaut'=> 'ua-caiss-haut',
         'superviseur' => 'ua-sup',
         default       => 'ua-other',
     };
     $roleClass = match($user->role) {
         'admin'       => 'rp-admin',
         'caissier'    => 'rp-caiss',
+        'caissierHaut'=> 'rp-caiss-haut',
         'superviseur' => 'rp-sup',
         default       => 'rp-other',
+    };
+    $roleLabel = match($user->role) {
+        'admin'       => 'Administrateur',
+        'caissier'    => 'Caissier',
+        'caissierHaut'=> 'Caissier Haut',
+        'superviseur' => 'Superviseur',
+        default       => 'Inconnu',
     };
 @endphp
 
@@ -356,7 +384,7 @@ input:checked + .slider:before { transform: translateX(22px); }
                         <i class="fas fa-envelope"></i> {{ $user->email }}
                     </span>
                     <span class="ue-hero-chip">
-                        <i class="fas fa-shield-alt"></i> {{ $user->role_label }}
+                        <i class="fas fa-shield-alt"></i> {{ $roleLabel }}
                     </span>
                     @if($user->id === auth()->id())
                         <span class="ue-hero-chip" style="background:rgba(59,130,246,.2); border-color:rgba(59,130,246,.3)">
@@ -386,7 +414,7 @@ input:checked + .slider:before { transform: translateX(22px); }
                     <div class="ue-profil-badges">
                         <span class="role-pill {{ $roleClass }}">
                             <span class="rp-dot"></span>
-                            {{ $user->role_label }}
+                            {{ $roleLabel }}
                         </span>
                         @if($user->actif)
                             <span class="stat-pill sp-actif">
@@ -539,20 +567,7 @@ input:checked + .slider:before { transform: translateX(22px); }
                                 <i class="fas fa-shield-alt" style="font-size:10px"></i>
                                 Rôle &amp; permissions
                             </div>
-                            <div class="role-options">
-                                {{-- Admin --}}
-                                <div>
-                                    <input type="radio" name="role" id="role_admin"
-                                           class="role-option" value="admin"
-                                           {{ old('role', $user->role) === 'admin' ? 'checked' : '' }}>
-                                    <label for="role_admin">
-                                        <div class="role-ico-wrap">
-                                            <i class="fas fa-shield-alt"></i>
-                                        </div>
-                                        <div class="role-lbl-main">Administrateur</div>
-                                        <div class="role-lbl-sub">Accès total</div>
-                                    </label>
-                                </div>
+                            <div class="role-options-4">
                                 {{-- Caissier --}}
                                 <div>
                                     <input type="radio" name="role" id="role_caissier"
@@ -566,6 +581,21 @@ input:checked + .slider:before { transform: translateX(22px); }
                                         <div class="role-lbl-sub">Ventes uniquement</div>
                                     </label>
                                 </div>
+
+                                {{-- Caissier Haut --}}
+                                <div>
+                                    <input type="radio" name="role" id="role_caissierHaut"
+                                           class="role-option" value="caissierHaut"
+                                           {{ old('role', $user->role) === 'caissierHaut' ? 'checked' : '' }}>
+                                    <label for="role_caissierHaut">
+                                        <div class="role-ico-wrap">
+                                            <i class="fas fa-cash-register"></i>
+                                        </div>
+                                        <div class="role-lbl-main">Caissier Haut</div>
+                                        <div class="role-lbl-sub">Ventes &amp; caisse</div>
+                                    </label>
+                                </div>
+
                                 {{-- Superviseur --}}
                                 <div>
                                     <input type="radio" name="role" id="role_superviseur"
@@ -577,6 +607,20 @@ input:checked + .slider:before { transform: translateX(22px); }
                                         </div>
                                         <div class="role-lbl-main">Superviseur</div>
                                         <div class="role-lbl-sub">Rapports &amp; stock</div>
+                                    </label>
+                                </div>
+
+                                {{-- Admin --}}
+                                <div>
+                                    <input type="radio" name="role" id="role_admin"
+                                           class="role-option" value="admin"
+                                           {{ old('role', $user->role) === 'admin' ? 'checked' : '' }}>
+                                    <label for="role_admin">
+                                        <div class="role-ico-wrap">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div class="role-lbl-main">Administrateur</div>
+                                        <div class="role-lbl-sub">Accès total</div>
                                     </label>
                                 </div>
                             </div>
@@ -683,7 +727,6 @@ input:checked + .slider:before { transform: translateX(22px); }
                     </form>
                 @endif
 
-                </form>
             </div>
         </div>
 
@@ -698,6 +741,12 @@ function togglePwd(inputId, iconId) {
     const icon = document.getElementById(iconId);
     inp.type   = inp.type === 'password' ? 'text' : 'password';
     icon.className = inp.type === 'text' ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+function confirmDelete(formId) {
+    if(confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) {
+        document.getElementById(formId).submit();
+    }
 }
 </script>
 @endpush
