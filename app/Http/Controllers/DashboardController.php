@@ -16,19 +16,33 @@ class DashboardController extends Controller
         $today     = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
 
-        // Chiffre d'affaires
-        $caJour  = Facture::where('statut', 'payee')
-            ->whereDate('created_at', $today)
-            ->sum('total');
+        // CA pour les caissiers (rôle = caissier)
+$caJourCaissier = Facture::where('statut', 'payee')
+    ->whereDate('created_at', $today)
+    ->whereHas('user', function($query) {
+        $query->where('role', 'caissier');
+    })
+    ->sum('total');
+
+// CA pour les caissiers haut (rôle = caissierHaut)
+$caJourCaissierHaut = Facture::where('statut', 'payee')
+    ->whereDate('created_at', $today)
+    ->whereHas('user', function($query) {
+        $query->where('role', 'caissierHaut');
+    })
+    ->sum('total');
+
+// CA total (tous les rôles confondus)
+$caJourTotal = Facture::where('statut', 'payee')
+    ->whereDate('created_at', $today)
+    ->sum('total');
+
 
         $caMois  = Facture::where('statut', 'payee')
             ->where('created_at', '>=', $thisMonth)
             ->sum('total');
 
-        // Ventes
-        $ventesJour = Facture::where('statut', 'payee')
-            ->whereDate('created_at', $today)
-            ->count();
+      
 
         $ventesMois = Facture::where('statut', 'payee')
             ->where('created_at', '>=', $thisMonth)
@@ -41,8 +55,6 @@ class DashboardController extends Controller
             ->where('stock_actuel', '>', 0)
             ->count();
 
-        // Alertes non traitées
-        $alertesNonTraitees = Alerte::where('traitee', false)->count();
 
         // Top 5 produits les plus vendus ce mois
         $topProduits = DB::table('facture_lignes')
@@ -85,10 +97,10 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard.index', compact(
-            'caJour', 'caMois',
-            'ventesJour', 'ventesMois',
+            'caJourCaissier', 'caJourCaissierHaut', 'caJourTotal', 'caMois',
+        'ventesMois',
             'totalProduits', 'produitsRupture', 'produitsFaibles',
-            'alertesNonTraitees',
+            
             'topProduits',
             'caParJour',
             'dernieresFactures',
