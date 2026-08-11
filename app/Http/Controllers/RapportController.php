@@ -59,28 +59,67 @@ class RapportController extends Controller
         ));
     }
 
-    public function exportPdf(Request $request)
-    {
-        $type = $request->get('type', 'stock');
+     /**
+     * Export PDF du rapport des ventes
+     */
+  public function exportPdf(Request $request)
+{
+    try {
+        set_time_limit(500);
+        @ini_set('memory_limit', '2048M'); // teste avec 2G si ton serveur le permet
 
-        if ($type === 'stock') {
-            $produits = Produit::with('categorie')->where('actif', true)->orderBy('libelle')->get();
-            $pdf = Pdf::loadView('rapports.pdf-stock', compact('produits'))
-                ->setPaper('a4', 'landscape');
-            return $pdf->download('rapport-stock-' . now()->format('Y-m-d') . '.pdf');
-        }
+        $dateDebut = $request->get('date_debut', now()->startOfMonth()->toDateString());
+        $dateFin   = $request->get('date_fin', now()->toDateString());
 
-        $dateDebut = $request->get('date_debut', now()->startOfMonth()->format('Y-m-d'));
-        $dateFin   = $request->get('date_fin', now()->format('Y-m-d'));
-        $factures  = Facture::with('lignes')
-            ->where('statut', 'payee')
+        $factures = Facture::select([
+                'id', 'numero', 'client_id', 'user_id',
+                'sous_total', 'remise', 'total',
+                'mode_paiement', 'statut', 'created_at',
+            ])
+            ->with(['client:id,nom', 'user:id,prenom'])
             ->whereDate('created_at', '>=', $dateDebut)
             ->whereDate('created_at', '<=', $dateFin)
+            ->where('statut', 'payee')
+            ->orderBy('created_at')
             ->get();
 
-        $pdf = Pdf::loadView('rapports.pdf-ventes', compact('factures', 'dateDebut', 'dateFin'))
-            ->setPaper('a4', 'landscape');
+        $nbVentes     = $factures->count();
+        $totalCA      = $factures->sum('total');
+        $totalRemises = $factures->sum('remise');
 
-        return $pdf->download('rapport-ventes-' . now()->format('Y-m-d') . '.pdf');
+        $pdf = Pdf::loadView('rapports.export-pdf', compact(
+            'factures', 'nbVentes', 'totalCA', 'totalRemises', 'dateDebut', 'dateFin'
+        ));
+
+        $pdf->setOptions([
+            'isRemoteEnabled'      => false,
+            'isHtml5ParserEnabled' => true,
+            'defaultPaperSize'     => 'a4',
+            'dpi'                  => 96,
+        ]);
+        $pdf->setPaper('a4', 'landscape');
+
+        // Écrit sur disque au lieu de streamer directement
+        $filename = 'rapport-ventes-' . $dateDebut . '-au-' . $dateFin . '-' . time() . '.pdf';
+        $path = storage_path('app/public/rapports/' . $filename);
+
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        file_put_contents($path, $pdf->output());
+
+        // Retourne le fichier en téléchargement, puis le supprime après envoi
+        return response()->download($path, $filename)->deleteFileAfterSend(true);
+
+    } catch (\Throwable $e) {
+        \Log::error('PDF Export Error', [
+            'message' => $e->getMessage(),
+            'file'    => $e->getFile(),
+            'line'    => $e->getLine(),
+        ]);
+        return response('Erreur PDF : ' . $e->getMessage(), 500);
     }
+}
+
 }

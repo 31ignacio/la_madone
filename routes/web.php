@@ -152,7 +152,8 @@ Route::get('/stock/sorties',     [StockController::class, 'sorties'])->name('sor
     Route::get('rapports',             [RapportController::class, 'index'])->name('rapports.index');
     Route::get('rapports/ventes',      [RapportController::class, 'ventes'])->name('rapports.ventes');
     Route::get('rapports/stock',       [RapportController::class, 'stock'])->name('rapports.stock');
-    Route::get('rapports/export-pdf',  [RapportController::class, 'exportPdf'])->name('rapports.export-pdf');
+    Route::get('/export-pdf', [RapportController::class, 'exportPdf'])->name('rapports.export-pdf');
+
     Route::get('rapports/export-excel', [RapportController::class, 'exportExcel'])->name('rapports.export-excel');
 
     // Users (admin seulement)
