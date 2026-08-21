@@ -17,7 +17,7 @@ class DashboardController extends Controller
         $thisMonth = Carbon::now()->startOfMonth();
 
         // CA pour les caissiers (rôle = caissier)
-$caJourCaissier = Facture::where('statut', 'payee')
+    $caJourCaissier = Facture::where('statut', 'payee')
     ->whereDate('created_at', $today)
     ->whereHas('user', function($query) {
         $query->where('role', 'caissier');
