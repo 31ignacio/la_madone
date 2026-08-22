@@ -21,7 +21,7 @@
 .cl-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.04); pointer-events:none; }
 .cl-hero::after  { content:''; position:absolute; bottom:-30px; left:40%; width:160px; height:160px; border-radius:50%; background:rgba(99,102,241,.1); pointer-events:none; }
 .cl-hero-left { position:relative; z-index:1; }
-.cl-hero-title { font-family:'Syne',sans-serif; font-size:clamp(1rem,2.5vw,1.35rem); font-weight:800; color:#fff; margin:0 0 4px; }
+.cl-hero-title { font-family:sans-serif; font-size:clamp(1rem,2.5vw,1.35rem); font-weight:800; color:#fff; margin:0 0 4px; }
 .cl-hero-sub { font-size:11px; color:rgba(255,255,255,.45); margin:0; }
 .cl-hero-right { position:relative; z-index:1; display:flex; gap:8px; }
 .cl-new-btn {
@@ -37,7 +37,7 @@
 .cl-kpi { background:#fff; border:1px solid #e8edf5; border-radius:16px; padding:18px; box-shadow:0 2px 12px rgba(11,15,26,.05); transition:.2s; }
 .cl-kpi:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
 .cl-kpi-ico { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:10px; }
-.cl-kpi-val { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; line-height:1; margin-bottom:3px; }
+.cl-kpi-val { font-family:sans-serif; font-size:1.5rem; font-weight:800; line-height:1; margin-bottom:3px; }
 .cl-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.6; }
 
 .cl-card { background:#fff; border:1px solid #e8edf5; border-radius:20px; overflow:hidden; box-shadow:0 2px 16px rgba(11,15,26,.05); }

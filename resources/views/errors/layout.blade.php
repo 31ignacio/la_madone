@@ -131,7 +131,7 @@
         }
         
         .error-code {
-            font-family: 'Syne', sans-serif;
+            font-family:  sans-serif;
             font-size: 100px;
             font-weight: 900;
             background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,.5) 100%);
@@ -181,7 +181,7 @@
         
         /* ── Titre ── */
         .error-title {
-            font-family: 'Syne', sans-serif;
+            font-family:  sans-serif;
             font-size: 28px;
             font-weight: 800;
             color: #fff;

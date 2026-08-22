@@ -41,7 +41,7 @@
     font-size:20px; color:#fff; flex-shrink:0;
 }
 .usr-hero-title {
-    font-family:'Syne',sans-serif;
+    font-family:sans-serif;
     font-size:clamp(1.05rem,2.5vw,1.35rem); font-weight:800;
     color:#fff; margin:0 0 3px; letter-spacing:-.2px;
 }

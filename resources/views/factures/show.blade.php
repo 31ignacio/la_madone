@@ -33,7 +33,7 @@
 }
 
 .fct-hero-left { position:relative; z-index:1; }
-.fct-hero-num  { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; color:#fff; margin:0 0 4px; letter-spacing:-.3px; }
+.fct-hero-num  { font-family:sans-serif; font-size:1.5rem; font-weight:800; color:#fff; margin:0 0 4px; letter-spacing:-.3px; }
 .fct-hero-meta { font-size:12px; color:rgba(255,255,255,.5); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .fct-hero-meta span { display:inline-flex; align-items:center; gap:5px; }
 
@@ -146,7 +146,7 @@
     padding:16px 20px;
 }
 .tot-total .tot-lbl { color:rgba(255,255,255,.75); font-size:11px; text-transform:uppercase; letter-spacing:.5px; font-weight:800; }
-.tot-total .tot-val { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; color:#fff; }
+.tot-total .tot-val { font-family:sans-serif; font-size:1.6rem; font-weight:800; color:#fff; }
 
 .tot-monnaie .tot-val { color:#2563eb; }
 .tot-remise  .tot-val { color:#dc2626; }

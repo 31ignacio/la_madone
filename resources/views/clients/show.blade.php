@@ -17,8 +17,8 @@
 .cs-hero-orb1 { position:absolute; top:-60px; right:-60px; width:240px; height:240px; border-radius:50%; background:rgba(99,102,241,.12); z-index:0; }
 .cs-hero-orb2 { position:absolute; bottom:-40px; left:30%; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.04); z-index:0; }
 .cs-hero-content { position:relative; z-index:1; display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
-.cs-hero-avatar { width:72px; height:72px; border-radius:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:#fff; border:3px solid rgba(255,255,255,.2); }
-.cs-hero-name { font-family:'Syne',sans-serif; font-size:clamp(1.1rem,3vw,1.5rem); font-weight:800; color:#fff; margin:0 0 6px; }
+.cs-hero-avatar { width:72px; height:72px; border-radius:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:sans-serif; font-size:24px; font-weight:800; color:#fff; border:3px solid rgba(255,255,255,.2); }
+.cs-hero-name { font-family:sans-serif; font-size:clamp(1.1rem,3vw,1.5rem); font-weight:800; color:#fff; margin:0 0 6px; }
 .cs-hero-meta { display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
 .cs-meta-item { display:flex; align-items:center; gap:5px; font-size:12px; color:rgba(255,255,255,.55); }
 .cs-hero-actions { display:flex; gap:8px; align-items:center; margin-left:auto; }
@@ -41,7 +41,7 @@
 @media(max-width:900px){ .cs-kpi-row { grid-template-columns:repeat(2,1fr); } }
 .cs-kpi { background:#fff; border:1px solid #e8edf5; border-radius:16px; padding:18px; box-shadow:0 2px 12px rgba(11,15,26,.05); }
 .cs-kpi-ico { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:10px; }
-.cs-kpi-val { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; line-height:1; margin-bottom:3px; }
+.cs-kpi-val { font-family:sans-serif; font-size:1.4rem; font-weight:800; line-height:1; margin-bottom:3px; }
 .cs-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.6; }
 
 .cs-body { display:grid; grid-template-columns:1fr 290px; gap:18px; align-items:start; }

@@ -31,11 +31,11 @@
 .fs-hero-avatar {
     width:72px; height:72px; border-radius:20px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:#fff;
+    font-family:sans-serif; font-size:24px; font-weight:800; color:#fff;
     border:3px solid rgba(255,255,255,.2);
 }
 .fs-hero-info { flex:1; min-width:0; }
-.fs-hero-name { font-family:'Syne',sans-serif; font-size:clamp(1.1rem,3vw,1.5rem); font-weight:800; color:#fff; margin:0 0 6px; }
+.fs-hero-name { font-family:sans-serif; font-size:clamp(1.1rem,3vw,1.5rem); font-weight:800; color:#fff; margin:0 0 6px; }
 .fs-hero-meta { display:flex; flex-wrap:wrap; gap:16px; }
 .fs-meta-item { display:flex; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,.55); }
 .fs-meta-item i { font-size:10px; }
@@ -65,7 +65,7 @@
 @media(max-width:768px){ .fs-kpi-row { grid-template-columns:1fr 1fr; } }
 .fs-kpi { background:#fff; border:1px solid #e8edf5; border-radius:16px; padding:18px; box-shadow:0 2px 12px rgba(11,15,26,.05); }
 .fs-kpi-ico { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:10px; }
-.fs-kpi-val { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; line-height:1; margin-bottom:3px; }
+.fs-kpi-val { font-family:sans-serif; font-size:1.5rem; font-weight:800; line-height:1; margin-bottom:3px; }
 .fs-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.6; }
 
 /* GRID BODY */

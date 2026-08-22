@@ -119,7 +119,7 @@
 .pm-hd-bg.mode-create { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #065f46 100%); }
 .pm-hd-bg.mode-edit   { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #92400e 100%); }
 .pm-hd-bg::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.05); pointer-events:none; }
-.pm-title { font-family: 'Syne', sans-serif; font-size: 1.15rem; color: #fff; margin: 0 0 3px; font-weight: 800; }
+.pm-title { font-family:  sans-serif; font-size: 1.15rem; color: #fff; margin: 0 0 3px; font-weight: 800; }
 .pm-sub { font-size: 11px; color: rgba(255,255,255,.5); margin: 0; }
 .pm-close { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.8); display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; transition: .15s; flex-shrink: 0; position: relative; z-index: 1; }
 .pm-close:hover { background: rgba(255,255,255,.22); color: #fff; }

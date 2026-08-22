@@ -20,7 +20,7 @@
     position:relative; overflow:hidden; box-shadow:0 8px 32px rgba(15,23,42,.2);
 }
 .ff-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.05); pointer-events:none; }
-.ff-hero h1 { font-family:'Syne',sans-serif; font-size:1.2rem; color:#fff; margin:0 0 3px; }
+.ff-hero h1 { font-family:sans-serif; font-size:1.2rem; color:#fff; margin:0 0 3px; }
 .ff-hero p  { font-size:11px; color:rgba(255,255,255,.45); margin:0; }
 .ff-back { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.8); border-radius:10px; padding:8px 16px; font-size:12px; font-weight:700; text-decoration:none; transition:.2s; position:relative; z-index:1; }
 .ff-back:hover { background:rgba(255,255,255,.18); color:#fff; text-decoration:none; }
@@ -53,8 +53,8 @@
 .toggle-slider:before { content:''; position:absolute; width:18px; height:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.25s; box-shadow:0 1px 4px rgba(0,0,0,.15); }
 .toggle-switch input:checked + .toggle-slider { background:#d97706; }
 .toggle-switch input:checked + .toggle-slider:before { transform:translateX(20px); }
-.preview-avatar { width:64px; height:64px; border-radius:18px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:#fff; transition:.3s; }
-.preview-name { font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; text-align:center; color:#0f172a; margin-bottom:4px; }
+.preview-avatar { width:64px; height:64px; border-radius:18px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-family:sans-serif; font-size:22px; font-weight:800; color:#fff; transition:.3s; }
+.preview-name { font-family:sans-serif; font-size:1rem; font-weight:800; text-align:center; color:#0f172a; margin-bottom:4px; }
 .preview-ville { font-size:11px; color:#94a3b8; text-align:center; margin-bottom:12px; }
 .preview-info-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f8fafc; font-size:12px; color:#374151; }
 .preview-info-row:last-child { border-bottom:none; }

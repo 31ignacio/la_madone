@@ -145,7 +145,7 @@
     background:rgba(255,255,255,.07); pointer-events:none;
 }
 .ent-modal-title {
-    font-family:'Syne',sans-serif;
+    font-family:sans-serif;
     font-size:1.15rem; font-weight:800; color:#fff; margin:0;
     display:flex; align-items:center; gap:12px; position:relative; z-index:1;
 }
@@ -259,7 +259,7 @@
     margin-bottom:20px;
 }
 .montant-preview .mp-lbl { font-size:11px; color:rgba(255,255,255,.5); font-weight:600; }
-.montant-preview .mp-val { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; color:#34d399; }
+.montant-preview .mp-val { font-family:sans-serif; font-size:1.4rem; font-weight:800; color:#34d399; }
 
 /* Footer modal */
 .ent-modal-ft {
