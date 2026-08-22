@@ -93,11 +93,11 @@ class Produit extends Model
         }
 
         $prixDetail = (float) $this->prix_detail;
-        $prixMoyen  = $this->prix_moyen  ? (float) $this->prix_moyen  : null;
-        $prixGros   = $this->prix_gros   ? (float) $this->prix_gros   : null;
+        $prixMoyen  = $this->prix_moyen !== null ? (float) $this->prix_moyen : null;
+        $prixGros   = $this->prix_gros !== null ? (float) $this->prix_gros : null;
 
         $seuilDetail = (int) ($this->seuil_detail ?? 1);
-        $seuilMoyen  = $this->seuil_moyen ? (int) $this->seuil_moyen : null;
+        $seuilMoyen  = $this->seuil_moyen !== null ? (int) $this->seuil_moyen : null;
 
         // Palier détail : qté <= seuil_detail
         if ($quantite <= $seuilDetail) {
@@ -112,6 +112,12 @@ class Produit extends Model
         // Palier gros : qté > seuil_moyen
         if ($seuilMoyen !== null && $quantite > $seuilMoyen) {
             return $prixGros ?? $prixDetail;
+        }
+
+        // Même comportement que la caisse lorsqu'un prix gros est défini sans
+        // palier intermédiaire : il s'applique au-delà du seuil détail.
+        if ($prixGros !== null && $quantite > $seuilDetail) {
+            return $prixGros;
         }
 
         // Fallback sécurité

@@ -111,8 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('sorties',       [StockController::class, 'storeSortie'])->name('sorties.store');  // ✅
     Route::get('mouvements',     [StockController::class, 'mouvements'])->name('mouvements');
     Route::delete('entrees/{mouvement}', [StockController::class, 'destroyEntree'])->name('entrees.destroy');
-     Route::get('/stock/sorties/pdf', [StockController::class, 'sortiesPdf'])->name('sorties.pdf');
-Route::get('/stock/sorties',     [StockController::class, 'sorties'])->name('sorties');
+    Route::get('sorties/pdf', [StockController::class, 'sortiesPdf'])->name('sorties.pdf');
 });
 
     // client

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Produit;
 use App\Models\Fournisseur;
 use App\Models\MouvementStock;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;   // ← façade DomPDF
 class StockController extends Controller
@@ -105,6 +106,13 @@ public function storeEntree(Request $request)
 // ────────────────────────────────────────────────────────────────────
 public function sorties(Request $request)
 {
+    $roles = User::query()
+        ->select('role')
+        ->distinct()
+        ->orderBy('role')
+        ->get()
+        ->mapWithKeys(fn (User $user) => [$user->role => $user->role_label]);
+
     $query = MouvementStock::with(['produit', 'user'])
         ->where('type', 'not like', '%entree%')
         ->when($request->search, function ($q, $v) {
@@ -114,6 +122,7 @@ public function sorties(Request $request)
               ->orWhere('motif', 'like', "%$v%");
         })
         ->when($request->type,       fn($q, $v) => $q->where('type', $v))
+        ->when($request->role,       fn($q, $v) => $q->whereHas('user', fn($u) => $u->where('role', $v)))
         ->when($request->date_debut, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
         ->when($request->date_fin,   fn($q, $v) => $q->whereDate('created_at', '<=', $v))
         ->latest();
@@ -130,7 +139,7 @@ public function sorties(Request $request)
 
     // ── Cumul par produit (affiché uniquement quand filtre actif) ──
     $cumul = null;
-    $filtreActif = $request->hasAny(['search', 'type', 'date_debut', 'date_fin']);
+    $filtreActif = $request->hasAny(['search', 'type', 'role', 'date_debut', 'date_fin']);
 
     if ($filtreActif) {
         $cumul = $statsItems
@@ -152,7 +161,12 @@ public function sorties(Request $request)
 
     $mouvements = $query->paginate(20)->withQueryString();
 
-    return view('stock.sorties', compact('mouvements', 'stats', 'cumul', 'filtreActif'));
+    $produits = Produit::where('actif', true)
+        ->where('stock_actuel', '>', 0)
+        ->orderBy('libelle')
+        ->get();
+
+    return view('stock.sorties', compact('mouvements', 'stats', 'cumul', 'filtreActif', 'roles', 'produits'));
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -164,6 +178,7 @@ public function sortiesPdf(Request $request)
         ->where('type', 'not like', '%entree%')
         ->when($request->search,     fn($q, $v) => $q->whereHas('produit', fn($p) => $p->where('libelle', 'like', "%$v%")))
         ->when($request->type,       fn($q, $v) => $q->where('type', $v))
+        ->when($request->role,       fn($q, $v) => $q->whereHas('user', fn($u) => $u->where('role', $v)))
         ->when($request->date_debut, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
         ->when($request->date_fin,   fn($q, $v) => $q->whereDate('created_at', '<=', $v))
         ->latest();
@@ -197,6 +212,7 @@ public function sortiesPdf(Request $request)
         'date_debut' => $request->date_debut,
         'date_fin'   => $request->date_fin,
         'type'       => $request->type,
+        'role'       => $request->role,
         'search'     => $request->search,
     ];
 
@@ -226,7 +242,9 @@ public function sortiesPdf(Request $request)
         ], 422);
     }
 
-    $prix = (float) ($produit->prix_detail ?? $produit->prix_achat ?? 0);
+    // La valeur envoyée par le navigateur n'est jamais utilisée : le prix est
+    // recalculé ici avec la même règle de paliers que celle de la caisse.
+    $prix = $produit->getPrixParQuantite((float) $request->quantite);
 
     $produit->sortieStock(
         (float) $request->quantite,

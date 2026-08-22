@@ -131,6 +131,9 @@
         @if($filtres['type'])
             <div class="header-pill">Type : <span>{{ $filtres['type'] }}</span></div>
         @endif
+        @if($filtres['role'])
+            <div class="header-pill">Rôle : <span>{{ (new \App\Models\User(['role' => $filtres['role']]))->role_label }}</span></div>
+        @endif
         @if($filtres['search'])
             <div class="header-pill">Recherche : <span>"{{ $filtres['search'] }}"</span></div>
         @endif

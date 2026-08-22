@@ -39,23 +39,23 @@ class LoginController extends Controller
     }
 
     protected function validateLogin(Request $request): void
-{
-    $request->validate([
-        'prenom' => ['required', 'string'],
-        'password' => ['required', 'string'],
-    ], [
-        'prenom.required' => 'Le prenom est obligatoire.',
-        'password.required' => 'Le mot de passe est obligatoire.',
-    ]);
-
-    $user = \App\Models\User::where('prenom', $request->prenom)->first();
-
-    if ($user && $user->id === 11 && !now()->isWednesday()) {
-        throw \Illuminate\Validation\ValidationException::withMessages([
-            'prenom' => 'Cet utilisateur ne peut se connecter que le mercredi.',
+    {
+        $request->validate([
+            'prenom' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ], [
+            'prenom.required' => 'Le prenom est obligatoire.',
+            'password.required' => 'Le mot de passe est obligatoire.',
         ]);
+
+        $user = \App\Models\User::where('prenom', $request->prenom)->first();
+
+        if ($user && $user->id === 11 && !now()->isWednesday()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'prenom' => 'Cet utilisateur ne peut se connecter que le mercredi.',
+            ]);
+        }
     }
-}
     protected function credentials(Request $request): array
     {
         return [
